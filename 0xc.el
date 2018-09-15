@@ -196,6 +196,20 @@ to the user's preferences"
   "Return the smallest power of 2 greater than n"
   (expt 2 (ceiling (log n 2))))
 
+(defun 0xc--pick-base (user-input-value default-value)
+  (if (= (length user-input-value) 0)
+      default-value
+      (string-to-number user-input-value)))
+
+(defun 0xc--pick-base-and-store (default-value)
+  (if (= 0xc--recent-base 0)
+      (setq 0xc--recent-base default-value))
+  (setq 0xc--recent-base
+        (0xc--pick-base (read-string
+                           (format "Convert to base (default %d): "
+                                   0xc--recent-base))
+                        0xc--recent-base)))
+
 ;;;###autoload
 (defun 0xc-convert (base &optional number silent)
   "Read a number and a base, and output its representation in said base.
@@ -214,6 +228,20 @@ If SILENT is non-nil, do not output anything"
   (let ((bounds (bounds-of-thing-at-point 'word))
         (number (word-at-point)))
     (replace-regexp number (0xc-number-to-string (0xc-string-to-number number) (or base 0xc-default-base)) nil (car bounds) (cdr bounds))))
+
+;;;###autoload
+(defun 0xc-convert-point-to ()
+  "Replace the number at point with its representation to given base."
+  (interactive)
+  (let ((bounds (bounds-of-thing-at-point 'word))
+        (number (word-at-point)))
+    (replace-regexp
+     number
+     (0xc-number-to-string
+      (0xc-string-to-number number)
+      (0xc--pick-base-and-store 0xc-default-base))
+       nil (car bounds) (cdr bounds)))
+  )
 
 (provide '0xc)
 ;;; 0xc.el ends here
